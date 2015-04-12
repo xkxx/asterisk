@@ -1,5 +1,5 @@
 body{
-	background-image: url('background.png');
+	background-image: url('../img/background.png');
 	margin: 0px;
 	padding: 0px;
 	-webkit-background-size: cover;
@@ -12,30 +12,14 @@ body{
 #button{
 	border: 2px solid gray;
 	color: gray;
-	
 	margin-left: auto;
 	margin-right: auto;
 	text-align: center;
-	margin-top: 700px;
+	margin-top: 70vh;
 	padding: 10px;
 	width: 130px;
 	height: 35px;
 	font-size: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
 	font-size: 2em;
 
-}
-
-#buttonHover{
-	border: 2px solid white;
-	color: white;
-	position: relative;
-	margin-left: auto;
-	margin-right: auto;
-	text-align: center;
-	margin-top: 700px;
-	padding: 10px;
-	width: 130px;
-	height: 35px;
-	font-size: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
-	font-size: 2em;
 }

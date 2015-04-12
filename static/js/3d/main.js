@@ -4,7 +4,6 @@
   var me = this;
 
   var speed = 0;
-  var height = 0;
   var angle = 0;
 
   /** Options and defaults **/
@@ -937,7 +936,25 @@
   me.getAddedObjects = function() {
     return added_objects;
   };
-
+  
+  // called by clicking launch????????????????//
+  function socket(){
+    var connection = new WebSocket('url??');
+    connection.onopen = function () {
+      connection.send(speed + " " + height + " " + angle); //????????????/
+    } ;
+    connection.onmessage = function (evt) {
+      //console.log("Got ws message: " + evt.data); //??????????????
+      var data = evt.data;
+      if(data.type === "add"){
+        addOrbit(data.name, evt.data);
+      } else if(data.type === "remove"){
+        deleteOrbit(data.name);
+      } else {
+          mordifyOrbit(data.name, data);
+      }
+    };
+  }
 }
 
 // window.requestAnimationFrame(callback);
