@@ -53,6 +53,11 @@ def static_from_route():
 
 # main routes
 @app.route('/')
+def welcome():
+  return render_template('welcome.html')
+
+# main routes
+@app.route('/index.html')
 def index():
   return render_template('index.html')
 
