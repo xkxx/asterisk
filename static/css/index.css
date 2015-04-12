@@ -9,8 +9,7 @@ body{
 	background-position: -20px -50px;
 }
 
-#button{
-	border: 2px solid gray;
+#play{
 	color: gray;
 	margin-left: auto;
 	margin-right: auto;
@@ -19,7 +18,15 @@ body{
 	padding: 10px;
 	width: 130px;
 	height: 35px;
-	font-size: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+	font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
 	font-size: 2em;
+}
 
+#play a {
+	text-decoration: none;
+	color: gray;
+}
+
+#play a:hover {
+	color: white;
 }
