@@ -11,6 +11,10 @@ import base64
 import re
 import filters
 import threading
+import rebound
+
+# FIXME
+import testdata
 
 import api
 from stackblink import stackblink
@@ -158,6 +162,37 @@ def rankings():
     return Response(json_resp, mimetype='application/json', headers={ \
       'Cache-Control': 'max-age=432000', # 5 days
     })
+  except Exception, e:
+    resp = jsonify({'error': 'bad request', 'details': str(e)})
+    resp.status_code = 500
+    return resp
+
+@app.route('/api/testdata')
+def gettestdata():
+  print testdata.data
+  return json.dumps(testdata.data)
+
+@app.route('/api/launch')
+def launch():
+  try:
+    height = float(request.args.get('height')) or 1.0
+    speed = float(request.args.get('speed')) or 1.0
+    angle = float(request.args.get('angle')) or 1.0
+
+    earth_x = float(request.args.get('earth_x')) or 1.0
+    earth_y = float(request.args.get('earth_y')) or 1.0
+    earth_z = float(request.args.get('earth_z')) or 1.0
+
+    sun = Particle(m=1.00000597682, x=-4.06428567034226e-3, y=-6.08813756435987e-3, z=-1.66162304225834e-6, vx=+6.69048890636161e-6, vy=-6.33922479583593e-6, vz=-3.13202145590767e-9)
+
+    vx = speed * math.cos(angle) * math.cos(height)
+    vy = speed * math.sin(angle) * math.cos(height)
+    vz = r * math.sin(height)
+
+    rocket = Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
+                      vx=vx, vy=vy, vz=vz)
+
+    return jsonify(rebound.p2orbit(rocket, sun))
   except Exception, e:
     resp = jsonify({'error': 'bad request', 'details': str(e)})
     resp.status_code = 500
