@@ -10,7 +10,6 @@ import base64
 import re
 import filters
 import threading
-import rebound
 import math
 import sim
 from flask_sockets import Sockets
@@ -194,10 +193,10 @@ def preview():
     vy = speed * math.sin(angle) * math.cos(height)
     vz = speed * math.sin(height)
 
-    rocket = rebound.Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
+    rocket = sim.Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
                       vx=vx, vy=vy, vz=vz)
 
-    return json.dumps(rebound.convert_to_orbit(rocket))
+    return json.dumps(sim.convert_to_orbit(rocket))
   except Exception, e:
     resp = jsonify({'error': 'bad request', 'details': str(e)})
     resp.status_code = 500
@@ -218,14 +217,14 @@ def launch():
     vy = speed * math.sin(angle) * math.cos(height)
     vz = speed * math.sin(height)
 
-    rocket = rebound.Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
+    rocket = sim.Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
                       vx=vx, vy=vy, vz=vz,r=0.00001)
 
     results = api.rankings("closeness", 4000)
 
     sim.simulate(rocket, results)
 
-    return json.dumps(rebound.convert_to_orbit(rocket))
+    return json.dumps(sim.convert_to_orbit(rocket))
   except Exception, e:
     resp = jsonify({'error': 'bad request', 'details': str(e)})
     resp.status_code = 500
