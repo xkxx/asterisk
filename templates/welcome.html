@@ -2,18 +2,19 @@
 <html>
 	<head>
 		<title>Welcome</title>
-		<link href="index_css.css" type="text/css" rel="stylesheet">
-		<script src="../static/css/index.js" type="text/javascript"></script>
+		<link href="../static/css/index.css" type="text/css" rel="stylesheet">
 	</head>
 	<body>
 		<div id="button">PLAY</div>
 		 <script>
 			var button = document.getElementById("button");
 			button.onmouseover = function(){
-				this.id="buttonHover";
+				this.style.color="white";
+				this.style.color="2px solid white";
 			}
 			button.onmouseout = function(){
-				this.id="button";
+				this.style.color="gray";
+				this.style.color="2px solid gray";
 			}
 			button.onclick= function(){
 				 window.location.assign("index.html");
