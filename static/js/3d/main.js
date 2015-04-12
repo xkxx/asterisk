@@ -258,27 +258,27 @@
     $('#loading-text').html('planets');
     var mercury = new Orbit3D(Ephemeris.mercury,
         {
-          color: 0x913CEE, width: 1, jed: jed, object_size: 1.7,
+          color: 0xF0FFFF, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-mercury.jpg',
-          display_color: new THREE.Color(0x913CEE),
+          display_color: new THREE.Color(0xF0FFFF),
           particle_geometry: particle_system_geometry,
           name: 'Mercury'
         });
     scene.add(mercury.getEllipse());
     var venus = new Orbit3D(Ephemeris.venus,
         {
-          color: 0xFF7733, width: 1, jed: jed, object_size: 1.7,
+          color: 0xFFFFF0, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-venus.jpg',
-          display_color: new THREE.Color(0xFF7733),
+          display_color: new THREE.Color(0xFFFFF0),
           particle_geometry: particle_system_geometry,
           name: 'Venus'
         });
     scene.add(venus.getEllipse());
     var earth = new Orbit3D(Ephemeris.earth,
         {
-          color: 0x009ACD, width: 1, jed: jed, object_size: 1.7,
+          color: 0xFFF8DC, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-earth.jpg',
-          display_color: new THREE.Color(0x009ACD),
+          display_color: new THREE.Color(0xFFF8DC),
           particle_geometry: particle_system_geometry,
           name: 'Earth'
         });
@@ -289,18 +289,18 @@
     };
     var mars = new Orbit3D(Ephemeris.mars,
         {
-          color: 0xFFFFFF, width: 1, jed: jed, object_size: 1.7,
+          color: 0xFFE4E1, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-mars.jpg',
-          display_color: new THREE.Color(0xFFFFFF),
+          display_color: new THREE.Color(0xFFE4E1),
           particle_geometry: particle_system_geometry,
           name: 'Mars'
         });
     scene.add(mars.getEllipse());
     var jupiter = new Orbit3D(Ephemeris.jupiter,
         {
-          color: 0xFF7F50, width: 1, jed: jed, object_size: 1.7,
+          color: 0xF0FFF0, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-jupiter.jpg',
-          display_color: new THREE.Color(0xFF7F50),
+          display_color: new THREE.Color(0xF0FFF0),
           particle_geometry: particle_system_geometry,
           name: 'Jupiter'
         });
