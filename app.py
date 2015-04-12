@@ -2,7 +2,6 @@
 
 from flask import Flask, request, redirect, session, url_for, render_template, Response, jsonify, make_response, send_from_directory
 from flask.ext.assets import Environment, Bundle
-from flask.ext.mail import Mail
 import urllib
 import urlparse
 import json
@@ -13,6 +12,8 @@ import filters
 import threading
 import rebound
 import math
+import sim
+from flask_sockets import Sockets
 
 # FIXME
 import testdata
@@ -28,7 +29,7 @@ t1 = threading.Thread(target=import_sdss)
 t1.start()
 
 app = Flask(__name__)
-mail = Mail(app)
+sockets = Sockets(app)
 filters.register_filters(app)
 app.secret_key = 'not a secret key'
 
@@ -178,8 +179,8 @@ def gettestdata():
   print testdata.data
   return json.dumps(testdata.data)
 
-@app.route('/api/launch')
-def launch():
+@app.route('/api/preview')
+def preview():
   try:
     height = float(request.args.get('height')) or 1.0
     speed = float(request.args.get('speed')) or 1.0
@@ -188,8 +189,6 @@ def launch():
     earth_x = float(request.args.get('earth_x')) or 1.0
     earth_y = float(request.args.get('earth_y')) or 1.0
     earth_z = float(request.args.get('earth_z')) or 1.0
-
-    sun = rebound.Particle(m=1.00000597682, x=-4.06428567034226e-3, y=-6.08813756435987e-3, z=-1.66162304225834e-6, vx=+6.69048890636161e-6, vy=-6.33922479583593e-6, vz=-3.13202145590767e-9)
 
     vx = speed * math.cos(angle) * math.cos(height)
     vy = speed * math.sin(angle) * math.cos(height)
@@ -203,6 +202,40 @@ def launch():
     resp = jsonify({'error': 'bad request', 'details': str(e)})
     resp.status_code = 500
     return resp
+
+@app.route('/api/launch')
+def launch():
+  try:
+    height = float(request.args.get('height')) or 1.0
+    speed = float(request.args.get('speed')) or 1.0
+    angle = float(request.args.get('angle')) or 1.0
+
+    earth_x = float(request.args.get('earth_x')) or 1.0
+    earth_y = float(request.args.get('earth_y')) or 1.0
+    earth_z = float(request.args.get('earth_z')) or 1.0
+
+    vx = speed * math.cos(angle) * math.cos(height)
+    vy = speed * math.sin(angle) * math.cos(height)
+    vz = speed * math.sin(height)
+
+    rocket = rebound.Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
+                      vx=vx, vy=vy, vz=vz,r=0.00001)
+
+    results = api.rankings("closeness", 4000)
+
+    sim.simulate(rocket, results)
+
+    return json.dumps(rebound.convert_to_orbit(rocket))
+  except Exception, e:
+    resp = jsonify({'error': 'bad request', 'details': str(e)})
+    resp.status_code = 500
+    return resp
+
+@sockets.route('/trackorbits')
+def track_ws(ws):
+    while True:
+        message = ws.receive()
+        ws.send(message)
 
 @app.route('/api/autocomplete')
 def autocomplete():
@@ -364,23 +397,9 @@ def user_objects():
   return jsonify(api.insert_user_object(obj, image_keys))
 
 # Other Pages
-@app.route('/about', methods=['GET', 'POST'])
+@app.route('/about')
 def about():
-  if request.method == 'GET':
-    return render_template('about.html')
-  else:
-    email = request.form.get('email', None)
-    feedback = request.form.get('feedback', None)
-    if not feedback or feedback.find('a href') > -1:
-      return 'Form rejected because you look like a spambot. Please email me directly.'
-
-    from flask.ext.mail import Message
-    msg = Message('Asterank Feedback',
-              sender='feedback@asterank.com',
-              recipients=['typppo@gmail.com'],
-              body='%s:\r\n%s' % (email, feedback))
-    mail.send(msg)
-    return render_template('about.html')
+  return render_template('about.html')
 
 @app.route('/feedback')
 @app.route('/contact')
