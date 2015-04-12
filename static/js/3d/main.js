@@ -20,10 +20,6 @@
       new THREE.Color(opts.top_object_color) : new THREE.Color(0xDBDB70);
   opts.milky_way_visible = opts.milky_way_visible || true;
 
-  window.onload = function(){
-    setTimeout(function(){opts.jed_delta = 0.0;}, 7000);
-  };
-
   // requestAnimFrame polyfill
   window.requestAnimFrame = (function(){
     return  window.requestAnimationFrame       ||
@@ -124,6 +120,8 @@
     };
 
     window.onload = function() {
+      setTimeout(function(){opts.jed_delta = 0.0;}, 7000);
+      
       // preview orbits and launch spaceship
       var text = new ViewUI();
       text.Launch = function() {
