@@ -1,13 +1,18 @@
 body{
-	background-image: url('../img/background.png');
+	background-image: url('background.png');
 	margin: 0px;
 	padding: 0px;
+	-webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        background-size: cover;
+	background-position: -20px -50px;
 }
 
 #button{
 	border: 2px solid gray;
 	color: gray;
-	position: relative;
+	
 	margin-left: auto;
 	margin-right: auto;
 	text-align: center;
