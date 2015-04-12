@@ -3,6 +3,10 @@
 
   var me = this;
 
+  var speed = 0;
+  var height = 0;
+  var angle = 0;
+
   /** Options and defaults **/
   opts.static_prefix = opts.static_prefix || '/static';
   opts.default_camera_position = opts.camera_position || [0, 155, 32];
@@ -107,40 +111,44 @@
         me.clearRankings();
         runAsteroidQuery('smallest');
       };
-      this['Speed'] = opts.jed_delta;
+      this['Speed'] = 0.00001;
       this['Planet orbits'] = planet_orbits_visible;
       this['Milky Way'] = opts.milky_way_visible;
       this['Display date'] = '12/26/2012';
+
+      this['Height'] = 0.00001;
+      this['Angle'] = 0.00001;
     };
 
     window.onload = function() {
       var text = new ViewUI();
+      text.Launch = function() {
+        $.get('/api/launch?speed=' + speed + '&angle=' + angle + '&height=' + height);
+      };
       var gui = new dat.GUI();
-      gui.add(text, 'Cost effective');
-      gui.add(text, 'Most valuable');
-      gui.add(text, 'Most accessible');
-      gui.add(text, 'Smallest');
+      // gui.add(text, 'Cost effective');
+      // gui.add(text, 'Most valuable');
+      // gui.add(text, 'Most accessible');
+      // gui.add(text, 'Smallest');
       gui.add(text, 'Speed', 0, 1).onChange(function(val) {
-        opts.jed_delta = val;
-        var was_moving = object_movement_on;
-        object_movement_on = opts.jed_delta > 0;
+        speed = val;
+        // var was_moving = object_movement_on;
+        // object_movement_on = opts.jed_delta > 0;
       });
-      gui.add(text, 'Planet orbits').onChange(function() {
-        togglePlanetOrbits();
+      gui.add(text, 'Height', 0, 90).onChange(function(val) {
+        height = val;
+        // var was_moving = object_movement_on;
+        // object_movement_on = opts.jed_delta > 0;
       });
-      gui.add(text, 'Milky Way').onChange(function() {
-        toggleMilkyWay();
+      gui.add(text, 'Angle', 0, 360).onChange(function(val) {
+        angle = val;
+        // var was_moving = object_movement_on;
+        // object_movement_on = opts.jed_delta > 0;
       });
-      gui.add(text, 'Display date').onChange(function(val) {
-        var newdate = new Date(Date.parse(val));
-        if (newdate) {
-          var newjed = toJED(newdate);
-          changeJED(newjed);
-          if (!object_movement_on) {
-            render(true); // force rerender even if simulation isn't running
-          }
-        }
-      }).listen();
+      gui.add(text, 'Launch');
+
+      gui.listen();
+      
       window.datgui = text;
     }; // end window onload
   } // end initGUI
@@ -205,7 +213,7 @@
       THREEx.FullScreen.bindKey();
     }
 
-    camera.lookAt(new THREE.Vector3(0,0,0));
+    camera.lookAt(new THREE.Vector3(110,11,0));
     scene.add(camera);
 
     cameraControls = new THREE.TrackballControls(camera, opts.container);
@@ -281,9 +289,9 @@
     };
     var mars = new Orbit3D(Ephemeris.mars,
         {
-          color: 0xA63A3A, width: 1, jed: jed, object_size: 1.7,
+          color: 0xFFFFFF, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-mars.jpg',
-          display_color: new THREE.Color(0xA63A3A),
+          display_color: new THREE.Color(0xFFFFFF),
           particle_geometry: particle_system_geometry,
           name: 'Mars'
         });
@@ -481,9 +489,7 @@
       }, 0);
     }
     else {
-      $.getJSON('/api/rankings?sort_by=' + sort + '&limit='
-          + MAX_NUM_ORBITS
-          + '&orbits_only=true', function(data) {
+      $.getJSON('/api/testdata?', function(data) {
             me.processAsteroidRankings(data);
       }).error(function() {
         alert("Sorry, we've encountered an error and we can't load the simulation");
@@ -861,7 +867,44 @@
     object_movement_on = false;
   };
 
+  me.getCameraControl = function() {
+    return cameraControls;
+  };
+
   me.play = function() {
     object_movement_on = true;
   };
+
+  function modifyOrbit(name, object) {
+    for (var i = 0; i < added_objects.length; i++) {
+      if (name === added_objects[i].eph.full_name) {
+        for (var j = 0, keys = Object.keys(obj); j < keys.length; j++) {
+          scene.remove(added_objects[i].getEllipse());
+          added_objects[i].eph[keys[j]] = obj[keys[j]];
+          scene.add(added_objects[i].getEllipse());
+        }
+      }
+    }
+  }
+
+  function addOrbit(name, object) {
+    var newOrbit = new Orbit3D(object,
+        {
+          color: 0xFF7733, width: 1, jed: jed, object_size: 1.7,
+          texture_path: opts.static_prefix + '/img/texture-venus.jpg',
+          display_color: new THREE.Color(0xFF7733),
+          particle_geometry: particle_system_geometry,
+          name: 'Venus'
+        });
+    scene.add(venus.getEllipse());
+  }
+
+  function deleteOrbit(name) {
+    for (var i = 0; i < added_objects.length; i++) {
+      if (name === added_objects[i].eph.full_name) {
+        added_objects = added_objects.splice(i, 1);
+        scene.remove(added_objects[i].getEllipse());
+      }
+    }
+  }
 }

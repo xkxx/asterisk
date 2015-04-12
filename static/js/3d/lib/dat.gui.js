@@ -2422,6 +2422,7 @@ dat.GUI = dat.gui.GUI = (function (css, saveDialogueContents, styleSheet, contro
 
       dom.addClass(li, 'has-slider');
       controller.domElement.insertBefore(box.domElement, controller.domElement.firstElementChild);
+      
 
     }
     else if (controller instanceof NumberControllerBox) {

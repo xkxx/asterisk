@@ -56,10 +56,11 @@ function AsteroidTableCtrl($scope, $http, pubsub) {
     else {
       $('#results-table-loader').show();
       $scope.rankings = [];
-      $http.get('/api/rankings?sort_by='
-          + params.sort_by
-          + '&limit='
-          + params.limit)
+      // $http.get('/api/rankings?sort_by='
+      //     + params.sort_by
+      //     + '&limit='
+      //     + params.limit)
+      $http.get('/api/testdata')
         .success(function(data) {
         $scope.rankings = data;
         rankings_cache.Set(params, data);

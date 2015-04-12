@@ -12,6 +12,8 @@
     static_prefix: window.passthrough_vars.offline_mode ? 'static' : '/static'
   });
 
+  window.asterank3d = asterank3d;
+
   if (window.passthrough_vars.offline_mode) {
     var $canvi = $('canvas');
     if ($canvi.length > 1) {
