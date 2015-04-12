@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Welcome</title>
+		<link href="index_css.css" type="text/css" rel="stylesheet">
+		<script src="../static/css/index.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<div id="button">PLAY</div>
+		 <script>
+			var button = document.getElementById("button");
+			button.onmouseover = function(){
+				this.id="buttonHover";
+			}
+			button.onmouseout = function(){
+				this.id="button";
+			}
+			button.onclick= function(){
+				 window.location.assign("index.html");
+		}
+		</script> 
+	</body>
+</html>
