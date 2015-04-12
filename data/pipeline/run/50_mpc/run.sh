@@ -1,4 +1,4 @@
-#/bin/bash -e
+#!/bin/bash -e
 
 # Boilerplate
 pushd `dirname $0`

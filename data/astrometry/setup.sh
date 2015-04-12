@@ -1,4 +1,4 @@
-#/bin/bash -e
+#!/bin/bash -e
 # Astrometry setup for ubuntu/debian-like systems
 
 # Dependencies

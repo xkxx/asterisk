@@ -875,6 +875,7 @@
     object_movement_on = true;
   };
 
+<<<<<<< Updated upstream
   function modifyOrbit(name, object) {
     for (var i = 0; i < added_objects.length; i++) {
       if (name === added_objects[i].eph.full_name) {
@@ -907,4 +908,11 @@
       }
     }
   }
+  me.getCameraControl = function() {
+    return cameraControls;
+  };
+
+  me.getAddedObjects = function() {
+    return added_objects;
+  };
 }

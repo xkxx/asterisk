@@ -12,6 +12,7 @@ import re
 import filters
 import threading
 import rebound
+import math
 
 # FIXME
 import testdata
@@ -183,16 +184,16 @@ def launch():
     earth_y = float(request.args.get('earth_y')) or 1.0
     earth_z = float(request.args.get('earth_z')) or 1.0
 
-    sun = Particle(m=1.00000597682, x=-4.06428567034226e-3, y=-6.08813756435987e-3, z=-1.66162304225834e-6, vx=+6.69048890636161e-6, vy=-6.33922479583593e-6, vz=-3.13202145590767e-9)
+    sun = rebound.Particle(m=1.00000597682, x=-4.06428567034226e-3, y=-6.08813756435987e-3, z=-1.66162304225834e-6, vx=+6.69048890636161e-6, vy=-6.33922479583593e-6, vz=-3.13202145590767e-9)
 
     vx = speed * math.cos(angle) * math.cos(height)
     vy = speed * math.sin(angle) * math.cos(height)
-    vz = r * math.sin(height)
+    vz = speed * math.sin(height)
 
-    rocket = Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
+    rocket = rebound.Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
                       vx=vx, vy=vy, vz=vz)
 
-    return jsonify(rebound.p2orbit(rocket, sun))
+    return json.dumps(rebound.convert_to_orbit(rocket))
   except Exception, e:
     resp = jsonify({'error': 'bad request', 'details': str(e)})
     resp.status_code = 500

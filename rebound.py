@@ -1,216 +1,62 @@
-from ctypes import *
-import math
-import os
+import math, struct
 
-try:
-    range = xrange          # this means python 2.x
-except NameError:
-    pass                    # this means python 3.x
+class Particle:
+    fmtstr = struct.Struct("dddddddddddd")
 
-# Try to load libias15 from the obvioud places it could be in.
-libias15 = CDLL('./libias15.so')
-
-
-class Collision(Structure):
-    _fields_ = [("p1", c_int),
-               ("p2", c_int)]
-    def __str__(self):
-        return "<rebound.Collision object, p1=%d p2=%d>"%(self.p1,self.p2)
-
-CollisionResolver = CFUNCTYPE(None, Collision);
-
-def set_collision_resolve(func):
-    c_double.in_dll(libias15, "collision_resolve").value = CollisionResolver(func)
-
-# Defines the same datastructure as in particle.h
-class Particle(Structure):
-    _fields_ = [("x", c_double),
-                ("y", c_double),
-                ("z", c_double),
-                ("vx", c_double),
-                ("vy", c_double),
-                ("vz", c_double),
-                ("ax", c_double),
-                ("ay", c_double),
-                ("az", c_double),
-                ("m", c_double),
-                ("r", c_double),
-                ("lastcollision", c_double) ]
-    def __str__(self):
-        return "<rebound.Particle object, x=%f y=%f z=%f vx=%f vy=%f vz=%f>"%(self.x,self.y,self.z,self.vx,self.vy,self.vz)
-
-# Defines the same data structure as in tools.h
-class Orbit():
-    def __init__(self):
-        self.a      =   None    # semimajor axis
-        self.r      =   None    # radial distance from reference
-        self.h      =   None    # angular momentum
-        self.P      =   None    # orbital period
-        self.l      =   None    # mean longitude = Omega + omega + M
-        self.e      =   None    # eccentricity
-        self.inc    =   None    # inclination
-        self.Omega  =   None    # longitude of ascending node
-        self.omega  =   None    # argument of perihelion
-        self.f      =   None    # true anomaly
-
-    def __str__(self):
-        return "<rebound.Orbit instance, a=%f e=%f>"%(self.a,self.e)
-        
-
-# Set function pointer for additional forces
-
-AFF = CFUNCTYPE(None)
-fp = None
-def set_additional_forces(func):
-    global fp  # keep references
-    fp = AFF(func)
-    libias15.set_additional_forces(fp)
-
-# Setter/getter of parameters and constants
-def set_G(G):
-    c_double.in_dll(libias15, "G").value = G
-
-def get_G():
-    return c_double.in_dll(libias15, "G").value
-
-def set_dt(dt):
-    c_double.in_dll(libias15, "dt").value = dt
-
-def get_dt():
-    return c_double.in_dll(libias15, "dt").value
-
-def set_t(t):
-    c_double.in_dll(libias15, "t").value = t
-
-def set_min_dt(t):
-    c_double.in_dll(libias15, "integrator_min_dt").value = t
-
-def get_t():
-    return c_double.in_dll(libias15, "t").value
-
-def megno_init(delta):
-    libias15.integrator_megno_init(c_double(delta))
-
-def get_megno():
-    libias15.integrator_megno.restype = c_double
-    return libias15.integrator_megno()
-
-def get_lyapunov():
-    libias15.integrator_lyapunov.restype = c_double
-    return libias15.integrator_lyapunov()
-
-def get_N():
-    return c_int.in_dll(libias15,"N").value 
-
-
-# Setter/getter of particle data
-def set_particles(particles):
-    c_int.in_dll(libias15,"N").value = len(particles)
-    arr = (Particle * len(particles))(*particles)
-    libias15.setp(byref(arr))
-
-def particles_add(particles):
-    particle_add(particles)
-
-def particle_add(particles=None, m=None, x=None, y=None, z=None, vx=None, vy=None, vz=None, primary=None, a=None, anom=None, e=None, omega=None, inc=None, Omega=None, MEAN=None):   
-    """Adds a particle to REBOUND. Accepts one of the following four sets of arguments:
-    1) A single Particle structure.
-    2) A list of Particle structures.
-    3) The particle's mass and a set of cartesian coordinates: m,x,y,z,vx,vy,vz.
-    3) The primary as a Particle structure, the particle's mass and a set of orbital elements primary,a,anom,e,omega,inv,Omega,MEAN (see kepler_particle() for the definition of orbital elements). 
-    """
-    cart = [x,y,z,vx,vy,vz]
-    orbi = [primary,a,anom,e,omega,inc,Omega,MEAN]
-    if particles is not None:
-        if notNone(cart) or notNone(orbi):
-            raise ValueError("You cannot pass a particle structure and orbital elements or cartesian coordinates at the same time.")
-    else:
-        if m is None:   #default value for mass
-            m = 0.
-        if notNone(cart) and notNone(orbi):
-                raise ValueError("You cannot pass cartesian coordinates and orbital elements at the same time.")
-        if notNone(orbi):
-            if primary is None:
-                primary = get_center_of_momentum()
-            if a is None:
-                raise ValueError("You need to pass a semi major axis to initialize the particle using orbital elements.")
-            if anom is None:
-                anom = 0.
-            if e is None:
-                e = 0.
-            if omega is None:
-                omega = 0.
-            if inc is None:
-                inc = 0.
-            if Omega is None:
-                Omega = 0.
-            if MEAN is None:
-                MEAN = False
-            particles = kepler_particle(m=m,primary=primary,a=a,anom=anom,e=e,omega=omega,inc=inc,Omega=Omega,MEAN=MEAN)
+    def __init__(self, string="", x=0.0, y=0.0, z=0.0,
+                 vx=0.0, vy=0.0, vz=0.0,
+                 ax=0.0, ay=0.0, az=0.0,
+                 m=0.0, r=0.0, lastcollision=0.0):
+        if len(string) > 0:
+            self.string = string
+            data = self.fmtstr.unpack(string)
+            (self.x, self.y, self.z,
+                self.vx, self.vy, self.vz,
+                self.ax, self.ay, self.az,
+                self.m, self.r, self.lastcollision) = data
         else:
-            if x is None:
-                x = 0.
-            if y is None:
-                y = 0.
-            if z is None:
-                z = 0.
-            if vx is None:
-                vx = 0.
-            if vy is None:
-                vy = 0.
-            if vz is None:
-                vz = 0.
-            particles = Particle(m=m,x=x,y=y,z=z,vx=vx,vy=vy,vz=vz)
-    if isinstance(particles,list):
-        for particle in particles:
-            libias15.particles_add(particle)
-    else:
-       libias15.particles_add(particles)
+            self.string = self.fmtstr.pack(
+                x, y, z, vx, vy, vz, ax, ay, az, m, r, lastcollision)
 
-def particle_get(i):
-    N = get_N() 
-    if i>=N:
-        return None
-    getp = libias15.particle_get
-    getp.restype = Particle
-    _p = getp(c_int(i))
-    return _p
+            (self.x, self.y, self.z,
+                self.vx, self.vy, self.vz,
+                self.ax, self.ay, self.az,
+                self.m, self.r, self.lastcollision) = (x, y, z,
+                                                       vx, vy, vz,
+                                                       ax, ay, az,
+                                                       m, r, lastcollision)
+    def __str__(self):
+        return "<rebound.Particle object, x=%f y=%f z=%f vx=%f vy=%f vz=%f m=%f r=%f>"%(self.x,self.y,self.z,self.vx,self.vy,self.vz,self.m,self.r)
 
-def particles_get_array():
-    N = get_N() 
-    particles = []
-    for i in range(0,N):
-        particles.append(particle_get(i))
-    return particles
+TINY=1.e-308
+MIN_REL_ERROR = 1.e-12
 
+class Orbit:
+    fmtstr = struct.Struct("dddddddddd")
 
-def particles_get():
-    N = c_int.in_dll(libias15,"N").value 
-    getp = libias15.particles_get
-    getp.restype = POINTER(Particle)
-    return getp()
+    def __init__(self, string="",
+                 a=0.0, r=0.0, h=0.0, P=0.0, l=0.0, e=0.0, inc=0.0,
+                 Omega=0.0, omega=0.0, f=0.0):
+        if len(string) > 0:
+            self.string = string
+            data = self.fmtstr.unpack(string)
+            (self.a, self.r, self.h, self.P, self.l, self.e, self.inc,
+             self.Omega, self.omega, self.f) = data
+        else:
+            self.string = self.fmtstr.pack(
+                a, r, h, P, l, e, inc,
+                Omega, omega, f)
 
-
-# Tools
-def move_to_center_of_momentum():
-    libias15.tools_move_to_center_of_momentum()
-
-def reset():
-    libias15.reset()
-
-# Integration
-def step():
-    libias15.ias15_step()
-
-def integrate(tmax):
-    libias15.integrate(c_double(tmax))
+            (self.a, self.r, self.h, self.P, self.l, self.e0, self.inc,
+             self.Omega, self.omega, self.f) = (a, r, h, P, l, e, inc,
+                                                                Omega, omega, f)
 
 TWOPI = 2.*math.pi
 def mod2pi(f):
     """Returns the angle f modulo 2 pi."""
-    while f<0.:
+    while f < 0.:
         f += TWOPI
-    while f>TWOPI:
+    while f > TWOPI:
         f -= TWOPI
     return f
 
@@ -218,14 +64,14 @@ def notNone(a):
     """Returns True if array a contains at least one element that is not None. Returns False otherwise."""
     return a.count(None) != len(a)
 
-def eccentricAnomaly(e,M):
+def eccentricAnomaly(e, M):
     """Returns the eccentric anomaly given the eccentricity and mean anomaly of a Keplerian orbit.
 
     Keyword arguments:
     e -- the eccentricity
     M -- the mean anomaly
     """
-    E = M if e<0.8 else math.pi
+    E = M if e < 0.8 else math.pi
     
     F = E - e*math.sin(M) - M
     for i in range(100):
@@ -236,31 +82,8 @@ def eccentricAnomaly(e,M):
     E = mod2pi(E)
     return E
 
-def get_center_of_momentum():
-    """Returns the center of momentum for all particles in the simulation"""
-    m = 0.
-    x = 0.
-    y = 0.
-    z = 0.
-    vx = 0.
-    vy = 0.
-    vz = 0.
-    ps = particles_get()    # particle pointer
-    for i in range(get_N()):
-    	m  += ps[i].m
-    	x  += ps[i].x*ps[i].m
-    	y  += ps[i].y*ps[i].m
-    	z  += ps[i].z*ps[i].m
-    	vx += ps[i].vx*ps[i].m
-    	vy += ps[i].vy*ps[i].m
-    	vz += ps[i].vz*ps[i].m
-    x /= m
-    y /= m
-    z /= m
-    vx /= m
-    vy /= m
-    vz /= m
-    return Particle(m=m, x=x, y=y, z=z, vx=vx, vy=vy, vz=vz)
+k = 0.01720209895       # Gaussian constant 
+G = k**2
 
 def kepler_particle(m,
                     primary,    # central body (rebound.Particle object)
@@ -335,7 +158,7 @@ def kepler_particle(m,
     y  = primary.y + r*(sO*(co*cf-so*sf) + cO*(so*cf+co*sf)*ci)
     z  = primary.z + r*(so*cf+co*sf)*si
     
-    n = math.sqrt(get_G()*(primary.m+m)/(a**3))
+    n = math.sqrt(G*(primary.m+m)/(a**3))
     v0 = n*a/math.sqrt(1.-e**2)
     
     # Murray & Dermott Eq. 2.36 after applying the 3 rotation matrices from Sec. 2.8 to the velocities in the orbital plane
@@ -345,11 +168,9 @@ def kepler_particle(m,
     
     return Particle(m=m, x=x, y=y, z=z, vx=vx, vy=vy, vz=vz)
 
-TINY=1.e-308
-MIN_REL_ERROR = 1.e-12
-# from tools.c.  Converts cartesian elements to orbital elements.
+sun = Particle(m=1.00000597682, x=-4.06428567034226e-3, y=-6.08813756435987e-3, z=-1.66162304225834e-6, vx=+6.69048890636161e-6, vy=-6.33922479583593e-6, vz=-3.13202145590767e-9)
 
-def p2orbit(p, primary,verbose=False):
+def p2orbit(p, primary, verbose=False):
     """ Returns a rebound.Orbit object with the keplerian orbital elements
         corresponding to p (rebound.Particle) around the central body primary
         (rebound.Particle). Edge cases will return values set to None. If
@@ -393,7 +214,7 @@ def p2orbit(p, primary,verbose=False):
     dvz = p.vz - primary.vz
     v = math.sqrt ( dvx*dvx + dvy*dvy + dvz*dvz )
     
-    mu = get_G()*(p.m+primary.m)
+    mu = G*(p.m+primary.m)
     o.a = -mu/( v*v - 2.*mu/o.r )               # semi major axis
     
     h0 = (dy*dvz - dz*dvy)                      # angular momentum vector
@@ -462,7 +283,25 @@ def p2orbit(p, primary,verbose=False):
             o.f=2.*math.pi-o.f
             ea =2.*math.pi-ea
         
-        o.l = ea -o.e*math.sin(ea) + o.omega+ o.Omega  # mean longitude
+        o.l = ea -o.e*math.sin(ea) + o.omega + o.Omega  # mean longitude
     
     return o
 
+def convert_to_orbit(particle):
+    orbit = p2orbit(particle, sun)
+    return {
+        #'ma': orbit.anom,
+        'a': orbit.a,
+        'e': orbit.e,
+        'i': orbit.inc,
+        'w': orbit.omega,
+        'om': orbit.Omega,
+        'P': orbit.P
+    }
+
+def convert_to_coord(dic):
+    dic['GM'] = dic.get('GM', 0.000001);
+    return kepler_particle(dic['GM'], sun, dic['a'],
+                           anom=math.radians(dic['ma']), MEAN=True, e=dic['e'],
+                           omega=math.radians(dic['w']), inc=math.radians(dic['i']), Omega=math.radians(dic['om'])
+                           )
