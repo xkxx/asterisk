@@ -313,8 +313,8 @@ def convert_to_orbit(particle):
         'a': orbit.a,
         'e': orbit.e,
         'i': orbit.inc,
-        'w': orbit.omega,
-        'om': orbit.Omega,
+        'w': math.degrees(orbit.omega),
+        'om': math.degrees(orbit.Omega),
         'P': orbit.P
     }
 

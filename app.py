@@ -181,20 +181,7 @@ def gettestdata():
 @app.route('/api/preview')
 def preview():
   try:
-    height = float(request.args.get('height')) or 1.0
-    speed = float(request.args.get('speed')) or 1.0
-    angle = float(request.args.get('angle')) or 1.0
-
-    earth_x = float(request.args.get('earth_x')) or 1.0
-    earth_y = float(request.args.get('earth_y')) or 1.0
-    earth_z = float(request.args.get('earth_z')) or 1.0
-
-    vx = speed * math.cos(angle) * math.cos(height)
-    vy = speed * math.sin(angle) * math.cos(height)
-    vz = speed * math.sin(height)
-
-    rocket = sim.Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
-                      vx=vx, vy=vy, vz=vz)
+    rocket = getRocketParticle(args=request.args)
 
     return json.dumps(sim.convert_to_orbit(rocket))
   except Exception, e:
@@ -202,9 +189,8 @@ def preview():
     resp.status_code = 500
     return resp
 
-@app.route('/api/launch')
-def launch():
-  try:
+def getRocketParticle(obj = None, args = None):
+  if args:
     height = float(request.args.get('height')) or 1.0
     speed = float(request.args.get('speed')) or 1.0
     angle = float(request.args.get('angle')) or 1.0
@@ -212,15 +198,29 @@ def launch():
     earth_x = float(request.args.get('earth_x')) or 1.0
     earth_y = float(request.args.get('earth_y')) or 1.0
     earth_z = float(request.args.get('earth_z')) or 1.0
+  else:
+    height = obj.get('height', 1.0)
+    speed = obj.get('speed', 1.0)
+    angle = obj.get('angle', 1.0)
 
-    vx = speed * math.cos(angle) * math.cos(height)
-    vy = speed * math.sin(angle) * math.cos(height)
-    vz = speed * math.sin(height)
+    earth_x = obj.get('earth_x', 1.0)
+    earth_y = obj.get('earth_y', 1.0)
+    earth_z = obj.get('earth_z', 1.0)
+  angle = math.radians(angle)
+  height = math.radians(height)
+  vx = speed * math.cos(angle) * math.cos(height)
+  vy = speed * math.sin(angle) * math.cos(height)
+  vz = speed * math.sin(height)
 
-    rocket = sim.Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
-                      vx=vx, vy=vy, vz=vz,r=0.00001)
+  print vx, vy, vz
 
-    results = api.rankings("closeness", 4000)
+  return sim.Particle(m=0, x=earth_x, y=earth_y, z=earth_z,
+                        vx=vx, vy=vy, vz=vz,r=0.00001)
+
+@app.route('/api/launch')
+def launch():
+  try:
+    getRocketParticle(args=request.args)
 
     sim.simulate(rocket, results)
 
@@ -232,8 +232,14 @@ def launch():
 
 @sockets.route('/trackorbits')
 def track_ws(ws):
+    results = api.rankings("closeness", 4000)
+    sim_running = False
     while True:
         message = ws.receive()
+        print message
+        if message != "" and sim_running == False:
+          rocket = getRocketParticle(obj=json.loads(message))
+          sim.simulate(rocket, results)
         ws.send(message)
 
 @app.route('/api/autocomplete')
