@@ -11,7 +11,7 @@
   opts.static_prefix = opts.static_prefix || '/static';
   opts.default_camera_position = opts.camera_position || [0, 155, 32];
   opts.camera_fly_around = typeof opts.camera_fly_around === 'undefined' ? true : opts.camera_fly_around;
-  opts.jed_delta = opts.jed_delta || 0.25;
+  opts.jed_delta = opts.jed_delta || 0.5;
   opts.custom_object_fn = opts.custom_object_fn || null;
   opts.object_texture_path = opts.object_texture_path || opts.static_prefix + "/img/cloud4.png";
   opts.not_supported_callback = opts.not_supported_callback || function() {};
@@ -20,6 +20,10 @@
   opts.top_object_color = opts.top_object_color ?
       new THREE.Color(opts.top_object_color) : new THREE.Color(0xDBDB70);
   opts.milky_way_visible = opts.milky_way_visible || true;
+
+  window.onload = function(){
+    setTimeout(function(){opts.jed_delta = 0.0;}, 7000);
+  };
 
   // requestAnimFrame polyfill
   window.requestAnimFrame = (function(){
@@ -121,10 +125,15 @@
     };
 
     window.onload = function() {
+      // preview orbits and launch spaceship
       var text = new ViewUI();
       text.Launch = function() {
-        $.get('/api/launch?speed=' + speed + '&angle=' + angle + '&height=' + height);
+        $.getJSON('/api/launch?speed=' + speed + '&angle=' + angle + '&height=' + height, function( eph ) {
+          addOrbit('spaceship', eph);
+        });
       };
+
+      // GUI BEGINS -----------------------------------------
       var gui = new dat.GUI();
       // gui.add(text, 'Cost effective');
       // gui.add(text, 'Most valuable');
@@ -132,16 +141,28 @@
       // gui.add(text, 'Smallest');
       gui.add(text, 'Speed', 0, 1).onChange(function(val) {
         speed = val;
+
+        $.getJSON( '/api/preview?speed=' + speed + '&angle=' + angle + '&height=' + height, function( eph ) {
+          modifyOrbit('spaceship', eph);
+        });
         // var was_moving = object_movement_on;
         // object_movement_on = opts.jed_delta > 0;
       });
       gui.add(text, 'Height', 0, 90).onChange(function(val) {
         height = val;
+
+        $.getJSON( '/api/preview?speed=' + speed + '&angle=' + angle + '&height=' + height, function( eph ) {
+          modifyOrbit('spaceship', eph);
+        });
         // var was_moving = object_movement_on;
         // object_movement_on = opts.jed_delta > 0;
       });
       gui.add(text, 'Angle', 0, 360).onChange(function(val) {
         angle = val;
+
+        $.getJSON( '/api/preview?speed=' + speed + '&angle=' + angle + '&height=' + height, function( eph ) {
+          modifyOrbit('spaceship', eph);
+        });
         // var was_moving = object_movement_on;
         // object_movement_on = opts.jed_delta > 0;
       });
@@ -875,7 +896,7 @@
     object_movement_on = true;
   };
 
-<<<<<<< Updated upstream
+
   function modifyOrbit(name, object) {
     for (var i = 0; i < added_objects.length; i++) {
       if (name === added_objects[i].eph.full_name) {
@@ -908,6 +929,7 @@
       }
     }
   }
+
   me.getCameraControl = function() {
     return cameraControls;
   };
@@ -915,4 +937,8 @@
   me.getAddedObjects = function() {
     return added_objects;
   };
+
 }
+
+// window.requestAnimationFrame(callback);
+
