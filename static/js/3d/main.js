@@ -4,11 +4,10 @@
   var me = this;
 
   var speed = 0;
-  var angle = 0;
-  var height = 0;
 
   var firstPreview = true;
 
+  var earth;
   /** Options and defaults **/
   opts.static_prefix = opts.static_prefix || '/static';
   opts.default_camera_position = opts.camera_position || [0, 155, 32];
@@ -37,7 +36,7 @@
 
   /** Constants **/
   var WEB_GL_ENABLED = true
-    , MAX_NUM_ORBITS = 4000
+    , MAX_NUM_ORBITS = 10000
     , PIXELS_PER_AU = 50
     , NUM_BIG_PARTICLES = 25;   // show this many asteroids with orbits
 
@@ -117,15 +116,13 @@
       this['Planet orbits'] = planet_orbits_visible;
       this['Milky Way'] = opts.milky_way_visible;
       this['Display date'] = '12/26/2012';
-
-      this['Height'] = 0.00001;
-      this['Angle'] = 0.00001;
     };
 
     window.onload = function() {
       $('#startButton').on('click', function() {
         $('#missionWindow').hide();
         opts.jed_delta = 0.0;
+        setLock('earth');
       });
 
       // preview orbits and launch spaceship
@@ -152,7 +149,7 @@
         var point = planets[2]; // earth
         var coord = point.getPosAtTime(jed);
 
-        $.getJSON( '/api/preview?speed=' + speed + '&angle=' + angle + '&height=' + height + '&earth_x=' + coord[0] + '&earth_y=' + coord[1] + '&earth_z=' + coord[2], function( eph ) {
+        $.getJSON( '/api/preview?speed=' + speed, function( eph ) {
           console.info(eph);
           if (firstPreview) {
             addOrbit('spaceship', eph);
@@ -162,44 +159,44 @@
           }
         });
       });
-      gui.add(text, 'Height', 0, 90).onChange(function(val) {
-        height = val;
+      // gui.add(text, 'Height', 0, 90).onChange(function(val) {
+      //   height = val;
 
-        var point = planets[2]; // earth
-        var coord = point.getPosAtTime(jed);
+      //   var point = planets[2]; // earth
+      //   var coord = point.getPosAtTime(jed);
 
-        $.getJSON( '/api/preview?speed=' + speed + '&angle=' + angle + '&height=' + height + '&earth_x=' + coord[0] + '&earth_y=' + coord[1] + '&earth_z=' + coord[2], function( eph ) {
-          console.info(eph);
-          if (firstPreview) {
-            addOrbit('spaceship', eph);
-            firstPreview = false;
-          } else {
-            modifyOrbit('spaceship', eph);
-          }
-        });
-      });
-      gui.add(text, 'Angle', 0, 360).onChange(function(val) {
-        angle = val;
+      //   $.getJSON( '/api/preview?speed=' + speed, function( eph ) {
+      //     console.info(eph);
+      //     if (firstPreview) {
+      //       addOrbit('spaceship', eph);
+      //       firstPreview = false;
+      //     } else {
+      //       modifyOrbit('spaceship', eph);
+      //     }
+      //   });
+      // });
+      // gui.add(text, 'Angle', 0, 360).onChange(function(val) {
+      //   angle = val;
 
-        var point = planets[2]; // earth
-        var coord = point.getPosAtTime(jed);
+      //   var point = planets[2]; // earth
+      //   var coord = point.getPosAtTime(jed);
 
-        $.getJSON( '/api/preview?speed=' + speed + '&angle=' + angle + '&height=' + height + '&earth_x=' + coord[0] + '&earth_y=' + coord[1] + '&earth_z=' + coord[2], function( eph ) {
-          console.info(eph);
-          if (firstPreview) {
-            addOrbit('spaceship', eph);
-            firstPreview = false;
-          } else {
-            modifyOrbit('spaceship', eph);
-          }
-        });
-      });
+      //   $.getJSON( '/api/preview?speed=' + speed, function( eph ) {
+      //     console.info(eph);
+      //     if (firstPreview) {
+      //       addOrbit('spaceship', eph);
+      //       firstPreview = false;
+      //     } else {
+      //       modifyOrbit('spaceship', eph);
+      //     }
+      //   });
+      // });
       gui.add(text, 'Launch');
-
       gui.listen();
       
       window.datgui = text;
     }; // end window onload
+
   } // end initGUI
 
   function togglePlanetOrbits() {
@@ -309,7 +306,7 @@
         {
           color: 0xF0FFFF, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-mercury.jpg',
-          display_color: new THREE.Color(0xF0FFFF),
+          display_color: new THREE.Color(0x913CEE),
           particle_geometry: particle_system_geometry,
           name: 'Mercury'
         });
@@ -318,16 +315,16 @@
         {
           color: 0xFFFFF0, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-venus.jpg',
-          display_color: new THREE.Color(0xFFFFF0),
+          display_color: new THREE.Color(0xFF7733),
           particle_geometry: particle_system_geometry,
           name: 'Venus'
         });
     scene.add(venus.getEllipse());
-    var earth = new Orbit3D(Ephemeris.earth,
+    earth = new Orbit3D(Ephemeris.earth,
         {
           color: 0xFFF8DC, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-earth.jpg',
-          display_color: new THREE.Color(0xFFF8DC),
+          display_color: new THREE.Color(0x009ACD),
           particle_geometry: particle_system_geometry,
           name: 'Earth'
         });
@@ -340,7 +337,7 @@
         {
           color: 0xFFE4E1, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-mars.jpg',
-          display_color: new THREE.Color(0xFFE4E1),
+          display_color: new THREE.Color(0xA63A3A),
           particle_geometry: particle_system_geometry,
           name: 'Mars'
         });
@@ -349,13 +346,13 @@
         {
           color: 0xF0FFF0, width: 1, jed: jed, object_size: 1.7,
           texture_path: opts.static_prefix + '/img/texture-jupiter.jpg',
-          display_color: new THREE.Color(0xF0FFF0),
+          display_color: new THREE.Color(0xFF7F50),
           particle_geometry: particle_system_geometry,
           name: 'Jupiter'
         });
     scene.add(jupiter.getEllipse());
 
-    planets = [mercury, venus, earth, mars];
+    planets = [mercury, venus, earth, mars, jupiter];
     if (featured_2012_da14) {
       // Special: 2012 DA14
       var asteroid_2012_da14 = new Orbit3D(Ephemeris.asteroid_2012_da14,
@@ -538,8 +535,7 @@
       }, 0);
     }
     else {
-      $.getJSON('/api/testdata?', function(data) {
-            me.processAsteroidRankings(data);
+      $.getJSON('/api/rankings?sort_by=closeness&limit=' + MAX_NUM_ORBITS + '&orbits_only=true', function(data) { me.processAsteroidRankings(data);
       }).error(function() {
         alert("Sorry, we've encountered an error and we can't load the simulation");
         mixpanel.track('3d error', {type: 'json'});
@@ -983,7 +979,7 @@
   function socket(){
     var connection = new WebSocket('url??');
     connection.onopen = function () {
-      connection.send(speed + " " + height + " " + angle); //????????????/
+      connection.send(speed); //????????????/
     } ;
     connection.onmessage = function (evt) {
       //console.log("Got ws message: " + evt.data); //??????????????

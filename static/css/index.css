@@ -1,5 +1,5 @@
 body{
-	background-image: url('../img/background.png');
+	background-image: url('../img/star.png');
 	margin: 0px;
 	padding: 0px;
 	-webkit-background-size: cover;
@@ -14,11 +14,11 @@ body{
 	margin-left: auto;
 	margin-right: auto;
 	text-align: center;
-	margin-top: 70vh;
+	margin-top: 60vh;
 	padding: 10px;
 	width: 130px;
 	height: 35px;
-	font-family: "Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;
+	font-family: "Mecha","Helvetica",Helvetica,Arial,sans-serif;
 	font-size: 2em;
 }
 

@@ -60,7 +60,7 @@ function AsteroidTableCtrl($scope, $http, pubsub) {
       //     + params.sort_by
       //     + '&limit='
       //     + params.limit)
-      $http.get('/api/testdata')
+      $http.get('/api/rankings')
         .success(function(data) {
         $scope.rankings = data;
         rankings_cache.Set(params, data);

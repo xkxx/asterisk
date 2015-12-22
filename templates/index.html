@@ -22,9 +22,14 @@
         }
         {% endif %}
       };
+     	// window.onload = setTimeout(function(){
+      //     $('#missionWindow').show();
+      //   },4000);
     </script>
+
+
 	</head>
-<body>
+<body style="font-family:Mecha;">
   <noscript>Sorry, this page requires Canvas/WebGL, so you'll need to enable JavaScript.</noscript>
 
   {% if offline_mode %}
@@ -76,6 +81,10 @@
   <div id="loading">
     <!--<img src="/images/loader.gif"/> Loading <span id="loading-text"></span>...-->
     <img src="/static/img/loader.gif"/> Loading asteroids from database...
+  </div>
+  <div id="missionWindow" style="display:none; position: fixed; bottom: 0px; right: 0px; color: #000; background-color: #fff; width:50%; height:40px; margin-top:-20px;  text-align:center; padding-bottom:40px; padding-top:10px; -moz-border-radius:6px; -webkit-border-radius:6px; border-radius:6px; border: 1px #ccc solid;">
+    <span>mission start!! <br />Launch your space ship into hyperspace and avoid colliding with asteroids. <br />Adjusting the slide bar on top right to change the initial speed of your rocket, click “launch” to start.</span>
+    <button type="button" id="startButton" style="font-family:Mecha;display:block;margin:auto;">GOT IT!</button>
   </div>
   <div id="not-supported" style="display:none;">
     <p>
